@@ -1,17 +1,21 @@
-import firebaseApp from "@/config/firebase-config";
-import { getStorage, uploadBytes, ref, getDownloadURL } from "firebase/storage";
-
 export const UploadImageToFirebaseAndReturnUrl = async (file: File) => {
   try {
-    const storage = getStorage(firebaseApp);
 
-    const storageRef = ref(storage, `images/${Date.now()}-${file.name}`);
+    const formData = new FormData();
+    formData.append("file", file);
 
-    const snapshot = await uploadBytes(storageRef, file);
+    const res = await fetch("/api/upload", {
+      method: "POST",
+      body: formData
+    });
 
-    const downloadURL = await getDownloadURL(snapshot.ref);
+    if (!res.ok) {
+      throw new Error("Image upload failed");
+    }
 
-    return downloadURL;
+    const data = await res.json();
+
+    return data.url;
 
   } catch (error: any) {
     console.error(error);
